@@ -1,0 +1,13 @@
+{
+  "name": "@openintercept/protocol",
+  "version": "0.1.0",
+  "description": "Agent-agnostic wire contract for OpenIntercept: tool calls, results, decisions, rules.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  }
+}
