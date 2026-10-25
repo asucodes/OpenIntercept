@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-density="comfortable">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="description" content="OpenIntercept — intercept and inspect AI agent tool calls and HTTP traffic, locally." />
+  <title>OpenIntercept</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="rail">
+      <div class="rail-head">
+        <a class="brand" href="#/calls" id="brand" aria-label="OpenIntercept home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#17110a" d="M7.6 7.6 8.6 1.8 10.3 7.2 11.4 7.2 13.1 1.8 14.2 7.6c1.7 1.6 2 3.7 1.5 5.6l-.5 7.3h-5.6l.5-5.7-.9-1.4-5.8 1.3-.3-1.2 5.6-2Z"/>
+              <circle cx="12.3" cy="10.2" r="1" fill="#8fb6ff"/>
+            </svg>
+          </span>
+        </a>
+        <button class="icon-btn rail-collapse" id="rail-toggle" type="button" aria-label="Collapse sidebar" title="Collapse sidebar"></button>
+      </div>
+
+      <nav id="nav" class="rail-nav" aria-label="Views"></nav>
+
+      <div class="rail-foot">
+        <div class="rail-health" id="rail-health"></div>
+        <div class="rail-tools">
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme"></button>
+          <button class="icon-btn" id="density-toggle" type="button" aria-label="Toggle density" title="Toggle density"></button>
+          <button class="icon-btn" id="help-btn" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"></button>
+        </div>
+      </div>
+    </aside>
+
+    <div id="shell">
+      <header id="topbar">
+        <div class="topbar-title">
+          <div class="topbar-line">
+            <h1 id="view-title">OpenIntercept</h1>
+            <span class="crumb-sep" aria-hidden="true">›</span>
+            <span id="view-crumb">Tool calls</span>
+            <span class="held-pill" id="held-pill" hidden></span>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="search-trigger" id="palette-trigger" type="button">
+            <span class="search-trigger-icon" aria-hidden="true"></span>
+            <span class="search-trigger-label">Search or jump to…</span>
+            <kbd>⌘K</kbd>
+          </button>
+          <button class="icon-btn" id="refresh" type="button" aria-label="Reload captures" title="Reload captures (R)"></button>
+          <button class="intercept-switch" id="intercept" type="button" aria-pressed="false" title="Toggle interception (I)">
+            <span class="dot" id="intercept-dot"></span>
+            <span class="switch-label" id="intercept-label">Intercept off</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main">
+        <section id="list-pane" aria-label="Records">
+          <div id="list-toolbar"></div>
+          <div id="list"></div>
+        </section>
+        <aside id="detail" hidden aria-label="Inspector"></aside>
+      </main>
+    </div>
+
+    <footer id="statusbar"></footer>
+  </div>
+
+  <div id="toasts" role="status" aria-live="polite"></div>
+  <div id="modal-root" hidden></div>
+  <div id="palette-root" hidden></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
