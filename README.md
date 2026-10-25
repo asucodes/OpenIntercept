@@ -1,5 +1,7 @@
 # OpenIntercept
 
+**Models trust their tools blindly. This is the control panel for that trust.**
+
 Local interception and inspection for AI agent tool calls and HTTP traffic.
 Built for [OpenCode](https://opencode.ai) first, with an adapter contract that
 other agents can implement.
@@ -11,6 +13,21 @@ observes stays on this machine.
 
 > **Scope.** OpenIntercept is for systems you are authorized to test. It is passive:
 > it never sends payloads, replays requests, scans targets, or decrypts TLS.
+
+## The premise
+
+Models cannot verify their tools. A fetch that "failed," a search that "returned
+nothing," a shell command that "passed" — the model believes whatever bytes come
+back, then reasons, plans, and acts on them. That channel is an unauthenticated
+trust boundary: no signature, no provenance, no second opinion.
+
+Whoever controls that boundary controls the agent. One spoofed result can redirect
+research, launder a guess into a confirmed fact, or convince the model to hand over
+secrets — no prompt injection required, because the injection *is* the tool result.
+
+That is the jailbreak surface, and it belongs to whoever holds the tool channel.
+OpenIntercept puts it under a human's hand: pause any call, read exactly what the
+model would have believed, and decide what it actually gets.
 
 ## What it does
 
