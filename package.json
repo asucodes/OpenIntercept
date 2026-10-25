@@ -1,0 +1,25 @@
+{
+  "name": "openintercept",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenIntercept — local interception and inspection for AI agent tool calls and HTTP traffic.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "bun run packages/server/src/index.ts",
+    "server": "bun run packages/server/src/index.ts",
+    "test": "bun test ./packages",
+    "check": "bunx tsc --noEmit",
+    "sim": "bun scripts/sim.ts"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^7.0.2"
+  }
+}
