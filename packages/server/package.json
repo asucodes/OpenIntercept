@@ -1,0 +1,16 @@
+{
+  "name": "@openintercept/server",
+  "version": "0.1.0",
+  "description": "OpenIntercept sidecar: hold queue, rule evaluation, history, SSE, audit log, panel host.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/routes.ts"
+  },
+  "dependencies": {
+    "@openintercept/protocol": "workspace:*",
+    "hono": "^4.6.0",
+    "zod": "^4.1.0"
+  }
+}
