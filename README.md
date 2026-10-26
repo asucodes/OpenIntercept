@@ -44,7 +44,36 @@ model would have believed, and decide what it actually gets.
 ## Quick start
 
 Requirements: [Bun](https://bun.sh) 1.1+ and a terminal. No build step, no
-external services.
+external services. (The one-click installer sets Bun up for you if it's missing.)
+
+**One click — any machine with [OpenCode](https://opencode.ai):**
+
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.ps1 | iex
+```
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.sh | bash
+```
+
+The installer: ensures Bun is present, clones the repo to `~/.openintercept`,
+writes the adapter into `~/.config/opencode/plugins` (OpenCode's default even on
+Windows), starts the sidecar, and prints the panel URL. Re-running it updates
+everything in place.
+
+**Custom plugins folder?** Point the installer at it:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.ps1))) -PluginsDir "D:\path\to\opencode\plugins"
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.sh | bash -s -- --plugins-dir /path/to/opencode/plugins
+```
+
+**Manual setup** (what the one-liners do):
 
 ```bash
 bun install
