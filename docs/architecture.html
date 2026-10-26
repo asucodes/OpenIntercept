@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenIntercept - Architecture</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #000; color: #e7e9ea;
+      font: 14px/1.65 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 48px 24px 96px; }
+    h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.02em; }
+    h2 { font-size: 21px; margin: 56px 0 12px; letter-spacing: -0.01em; border-bottom: 1px solid rgba(255,255,255,0.09); padding-bottom: 10px; }
+    h3 { font-size: 15px; margin: 28px 0 8px; color: #8fb6ff; }
+    p { margin: 0 0 14px; color: #b8bdc2; }
+    .eyebrow { color: #2563eb; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+    .lead { font-size: 16.5px; color: #d7dce1; max-width: 760px; }
+    code, .mono { font: 12.5px/1.6 ui-monospace, "Cascadia Code", Consolas, "JetBrains Mono", monospace; }
+    pre {
+      background: #0a0a0a; border: 1px solid rgba(255,255,255,0.09); border-radius: 10px;
+      padding: 14px 16px; overflow: auto; margin: 0 0 18px; color: #c8cdd2;
+    }
+    pre .file {
+      display: block; color: #6f7680; font-size: 10.5px; margin-bottom: 8px; letter-spacing: 0.02em;
+    }
+    .kw { color: #8fb6ff; } .str { color: #34d399; } .cm { color: #566066; font-style: italic; } .fn { color: #c084fc; }
+    .diagram {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: stretch;
+      margin: 26px 0 10px;
+    }
+    .node {
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; background: #0d0d0d;
+      padding: 12px 14px; text-align: center;
+    }
+    .node .t { font-weight: 700; font-size: 13px; }
+    .node .s { color: #7a8188; font-size: 11px; margin-top: 3px; }
+    .node.model { border-color: rgba(52,211,153,0.35); }
+    .node.engine { border-color: rgba(255,255,255,0.16); }
+    .node.plugin { border-color: rgba(37,99,235,0.55); background: rgba(37,99,235,0.08); }
+    .node.sidecar { border-color: rgba(245,165,36,0.4); background: rgba(245,165,36,0.06); }
+    .node.human { border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.06); }
+    .arrow { text-align: center; color: #4b5157; font-size: 13px; padding: 2px 0; }
+    .pill {
+      display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+      background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.4); color: #8fb6ff; margin: 0 3px 4px 0;
+    }
+    .card {
+      border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; background: #0a0a0a;
+      padding: 16px 18px; margin: 0 0 14px;
+    }
+    ul { color: #b8bdc2; padding-left: 22px; margin: 0 0 14px; }
+    li { margin-bottom: 7px; }
+    a { color: #8fb6ff; }
+    .footer { margin-top: 64px; color: #566066; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.09); padding-top: 20px; }
+    @media (max-width: 760px) { .diagram { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">OpenIntercept Architecture</div>
+  <h1>How the trust boundary works, end to end</h1>
+  <p class="lead">
+    Models trust whatever their tools return. OpenIntercept is an OpenCode plugin plus a local
+    sidecar that lets a human sit on that boundary: every matching tool call pauses for a
+    decision before it runs, and again before its result reaches the model. This page walks
+    the full path with the real OpenCode code we hook.
+  </p>
+
+  <div class="diagram">
+    <div class="node model"><div class="t">Model</div><div class="s">believes tool output</div></div>
+    <div class="arrow">requests tool call</div>
+    <div class="node engine"><div class="t">OpenCode engine</div><div class="s">executes tool lifecycle</div></div>
+    <div class="arrow">fires plugin hooks</div>
+    <div class="node plugin"><div class="t">OpenIntercept adapter</div><div class="s">awaits sidecar decision</div></div>
+    <div class="arrow">HTTP, loopback only</div>
+    <div class="node sidecar"><div class="t">Sidecar</div><div class="s">hold queue, rules, audit</div></div>
+    <div class="arrow">SSE, live</div>
+    <div class="node human"><div class="t">You</div><div class="s">run / edit / spoof / drop</div></div>
+  </div>
+  <p>The decision travels back through the same awaited hook. The model never sees the pause;
+  from its side the call simply takes a moment longer and returns a perfectly normal result.</p>
+
+  <h2>1. The V1 engine target (opencode 1.x)</h2>
+  <p>
+    V1 exposes classic plugin hooks. OpenCode awaits them inline in the tool runner, which is the
+    load-bearing fact: a hook that does not return holds the tool mid-flight, and edits to the
+    arguments or result propagate only through in-place mutation of the hook's objects.
+  </p>
+  <pre><span class="file">packages/opencode/src/session/tools.ts (opencode 1.19.4) - hook emission sites</span>
+<span class="kw">yield*</span> plugin.trigger(
+  <span class="str">"tool.execute.before"</span>,
+  { tool: item.id, sessionID: ctx.sessionID, callID: ctx.callID },
+  { args },                          <span class="cm">// mutate args in place to rewrite the call</span>
+)
+<span class="kw">const</span> result = <span class="kw">yield*</span> item.execute(args, ctx)
+<span class="kw">const</span> output = { ...result, ... }
+<span class="kw">yield*</span> plugin.trigger(
+  <span class="str">"tool.execute.after"</span>,
+  { tool: item.id, sessionID: ctx.sessionID, callID: ctx.callID, args },
+  { output },                         <span class="cm">// mutate output.title/output to replace the result</span>
+)
+</pre>
+  <p>
+    The adapter registers <code>tool.execute.before</code> and <code>tool.execute.after</code>,
+    POSTs the call to the sidecar, and awaits the decision. Drop means throw a plain tool-failure
+    error; the transcript stays clean of any operator marker.
+  </p>
+
+  <h2>2. The V2 engine target (opencode 2.x)</h2>
+  <p>
+    V2 changed the shapes and added a wrapper API. Events are typed records, and
+    <code>tool.transform</code> lets a plugin replace a tool's execute function entirely, which
+    is how a spoof can skip the real tool while keeping the original arguments untouched.
+  </p>
+  <pre><span class="file">packages/core/src/tool.ts (opencode 2.1.4) - event emission</span>
+<span class="kw">const</span> beforeExecute = (name: string, input: unknown, context: Tool.Context) =&gt;
+  hooks.trigger(<span class="str">"tool"</span>, <span class="str">"execute.before"</span>, {
+    tool: name,
+    sessionID: context.sessionID,
+    agent: context.agent,
+    messageID: context.messageID,
+    id: context.id,
+    input,                             <span class="cm">// replace/args edits must mutate this object</span>
+  })
+</pre>
+  <pre><span class="file">packages/core/test/plugin/module.test.ts (opencode 2.1.4) - tool.transform wrapper</span>
+<span class="kw">yield*</span> ctx.tool.transform(<span class="kw">function</span> (editor) {
+  editor.add({
+    name: <span class="str">"check_tool"</span>,
+    description: <span class="str">"..."</span>,
+    execute: () =&gt;
+      Effect.as({
+        output: { formatted: <span class="str">"..."</span> },
+        content: <span class="str">"..."</span>,          <span class="cm">// what the model sees</span>
+      }),
+  })
+})
+</pre>
+  <p>
+    OpenIntercept's adapter wraps <code>webfetch</code> and <code>websearch</code>. On a
+    "respond" decision the wrapper returns a fabricated result without invoking the real tool;
+    the hooks path still reports an honest "not executed" original to the local audit log.
+  </p>
+
+  <h2>3. The wire contract (what crosses the loopback HTTP boundary)</h2>
+  <p>
+    Everything that crosses a process boundary is one zod-validated JSON envelope, shared by
+    adapter and sidecar so a future adapter for another agent only implements the contract.
+  </p>
+  <pre><span class="file">packages/protocol/src/index.ts - the essentials</span>
+<span class="kw">export const</span> Decision = z.object({
+  action: z.enum([<span class="str">"run"</span>, <span class="str">"replace"</span>, <span class="str">"respond"</span>, <span class="str">"forward"</span>, <span class="str">"drop"</span>]),
+  args: z.unknown().optional(),       <span class="cm">// replacement arguments (before stage)</span>
+  result: ToolResult.optional(),      <span class="cm">// replacement or fabricated result</span>
+  by: z.enum([<span class="str">"human"</span>, <span class="str">"timeout"</span>, <span class="str">"auto"</span>]),
+  reason: z.string().optional(),
+})
+
+<span class="kw">export const</span> CallRequest = z.discriminatedUnion(<span class="str">"kind"</span>, [
+  z.object({ kind: z.literal(<span class="str">"before"</span>), call: ToolCall }),
+  z.object({
+    kind: z.literal(<span class="str">"after"</span>),
+    call: ToolCall,
+    result: ToolResult,
+    fabricated: z.boolean().optional(),
+    spoof: ToolResult.optional(),     <span class="cm">// what the model saw when the adapter already replaced it</span>
+  }),
+])
+</pre>
+
+  <h2>4. The sidecar (local only, loopback only)</h2>
+  <div class="card">
+    <ul>
+      <li><b>Hold queue</b> - each hold is a promise the adapter's HTTP request is blocked on. It resolves on a human decision or a timeout (forward or drop), deduped by <code>callID:stage</code> key so adapter retries reattach instead of double-firing.</li>
+      <li><b>Rules engine</b> - evaluated top to bottom against tool, stage, args regex, and result regex. First match wins: hold, pass, or drop. Unmatched calls follow the profile default (pass to stay out of the way, or hold for Burp-style operation).</li>
+      <li><b>Store</b> - in-memory history with per-stage decisions and rule attribution, plus an append-only JSONL audit log as the durable local record.</li>
+      <li><b>SSE</b> - every state change streams to the panel live: holds, entries, decisions, agent heartbeats.</li>
+    </ul>
+  </div>
+  <p>
+    Every adapter path fails open: sidecar down, timeout, or parse error means the call proceeds
+    untouched. The agent never breaks because OpenIntercept is.
+  </p>
+
+  <h2>5. Spoofing guarantees (why the model cannot tell)</h2>
+  <p>
+    A spoofed result must satisfy the engine's declared Output schema, otherwise the engine
+    encodes it as a tool failure. OpenIntercept builds engine-aware envelopes:
+  </p>
+  <pre><span class="file">packages/core/src/tool/plugin/webfetch.ts (opencode 2.1.4) - declared Output schema</span>
+<span class="kw">const</span> Output = Schema.Struct({
+  url: Schema.String,
+  contentType: Schema.String,
+  format: Input.fields.format,          <span class="cm">// "text" | "markdown" | "html"</span>
+  output: Schema.String,
+})
+</pre>
+  <pre><span class="file">packages/schema/src/websearch.ts (opencode 2.1.4) - each result needs a time object</span>
+Result({
+  url: Schema.String,
+  title: Schema.String.optional(),
+  content: Schema.String.optional(),
+  time: Schema.Object({ published: Schema.Number.optional() }),
+})
+</pre>
+  <ul>
+    <li>Schema-correct envelopes per engine version - V1 needs <code>{output,title,metadata}</code>, V2 needs the typed structures above</li>
+    <li>Original arguments are never rewritten; the transcript keeps the call exactly as the model emitted it</li>
+    <li>Zero operator markers - no "spoofed" or interceptor strings anywhere the engine or model can observe</li>
+    <li>A real tool failure is never disguised as a success - the error passes through, the local record still shows the intent</li>
+  </ul>
+
+  <h2>6. Lifecycle engineering (the hard-won part)</h2>
+  <p>
+    The OpenCode desktop activates one plugin instance per location in a single process. All
+    mutable state therefore lives in per-registration closures, and registration cleanup
+    deactivates exactly one instance. There is no process-global generation counter - an earlier
+    design where a newer registration superseded older ones silently muted every other
+    location's hooks.
+  </p>
+  <p>
+    Same-location reloads are handled by the engine's registration scope: the adapter returns a
+    cleanup function that clears its interval and deactivates its own hooks.
+  </p>
+
+  <h2>7. Deliberate limits</h2>
+  <ul>
+    <li><b>No TLS MITM</b> - model traffic is captured at the HTTP client inside the agent's process, before encryption. The plaintext proxy is opt-in, and HTTPS CONNECT is tunnelled, never decrypted.</li>
+    <li><b>No telemetry</b> - a tool whose job is gating prompts, keys, and tool arguments must have zero egress. The audit log is local and append-only.</li>
+    <li><b>No active scanning</b> - OpenIntercept observes and gates; it never sends payloads or replays traffic against third parties.</li>
+  </ul>
+
+  <div class="footer">
+    OpenIntercept is MIT-licensed at
+    <a href="https://github.com/asucodes/OpenIntercept">github.com/asucodes/OpenIntercept</a>.
+    OpenCode code excerpts are quoted for engineering documentation from the Apache-2.0-licensed
+    opencode sources (v1.19.4 and v2.1.4), with paths shown for verification.
+  </div>
+</div>
+</body>
+</html>
