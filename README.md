@@ -20,7 +20,7 @@ tool calls. Every call your agent makes can **pause for a human** - before it ru
 before its result reaches the model. You read exactly what the model would have
 believed, then decide what it actually gets. Everything stays on your machine.
 
-![Calls list with inspector](docs/img/calls.png)
+![Calls list with inspector](docs/img/calls.png?v=2)
 
 ## The premise
 
