@@ -121,7 +121,7 @@ packages/protocol/     zod wire contract shared by adapter and sidecar
 packages/plugin/       the OpenCode adapter (single file, no dependencies)
 packages/server/       Hono sidecar: hold queue, rules, history, SSE, audit
 scripts/               one-click installers, plugin installer, traffic simulator
-docs/                  notes on the OpenCode tool pipeline
+docs/                  architecture deep-dive and notes on the OpenCode tool pipeline
 ```
 
 ## Contributing & issues
