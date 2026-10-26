@@ -373,7 +373,7 @@ const toastError = (error, title = "Request failed") =>
 
 let modalCloser = null
 
-function openModal({ title, subtitle, iconName = "shield", body, actions = [], onClose = null }) {
+function openModal({ title, subtitle, iconName = "shield", body, actions = [], onClose = null, wide = false }) {
   const root = $("#modal-root")
   root.replaceChildren()
   root.hidden = false
@@ -411,7 +411,7 @@ function openModal({ title, subtitle, iconName = "shield", body, actions = [], o
   modalCloser = close
   document.addEventListener("keydown", onKey)
 
-  const dialog = el("div", { class: "modal", role: "dialog", "aria-modal": "true", "aria-label": title })
+  const dialog = el("div", { class: `modal${wide ? " wide" : ""}`.trim(), role: "dialog", "aria-modal": "true", "aria-label": title })
   dialog.append(
     el(
       "div",
@@ -1673,6 +1673,7 @@ function openArgsEditor(hold) {
     title: "Edit arguments",
     subtitle: "The tool receives exactly this JSON. The transcript keeps the original call.",
     iconName: "edit",
+    wide: true,
     body: el("div", {}, area, error),
     actions: [
       { label: "Cancel", tone: "ghost" },
@@ -1701,6 +1702,7 @@ function openResultEditor(hold) {
     title: "Edit result",
     subtitle: "The model receives this text instead of the captured output.",
     iconName: "edit",
+    wide: true,
     body: el("div", {}, area),
     actions: [
       { label: "Cancel", tone: "ghost" },
@@ -1733,6 +1735,7 @@ function openSpoof(hold) {
       ? "The tool is skipped entirely. The model gets this text as a normal, successful result."
       : "The captured output is discarded. The model gets this text as a normal, successful result.",
     iconName: "eye",
+    wide: true,
     body: el(
       "div",
       {},

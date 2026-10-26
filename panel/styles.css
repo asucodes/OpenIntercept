@@ -805,6 +805,9 @@ input.text.invalid { border-color: var(--danger); }
   box-shadow: var(--shadow-3); overflow: hidden;
   animation: modal-in var(--t) var(--ease);
 }
+.modal.wide { width: min(920px, 96vw); }
+.modal.wide textarea.editor { height: min(68vh, 700px); min-height: 380px; }
+.modal.wide pre.code { max-height: 42vh; }
 .modal-head { display: flex; align-items: flex-start; gap: 11px; padding: 14px 15px; border-bottom: 1px solid var(--border); }
 .modal-icon { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); flex: 0 0 auto; }
 .modal-titlebox { flex: 1; min-width: 0; }
