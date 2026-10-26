@@ -249,11 +249,11 @@ describe("plugin heartbeat", () => {
 
   test("keeps concurrent desktop plugin activations separate", async () => {
     const app = freshApp([])
-    await post(app, "/api/agent", { adapter: "opencode-v2", location: "D:\\bounty", instanceID: "bounty-1" })
-    await post(app, "/api/agent", { adapter: "opencode-v2", location: "E:\\gsocAgent", instanceID: "gsoc-1" })
+    await post(app, "/api/agent", { adapter: "opencode-v2", location: "project-a", instanceID: "loc-1" })
+    await post(app, "/api/agent", { adapter: "opencode-v2", location: "project-b", instanceID: "gsoc-1" })
     const res = await (await app.request("/api/agent")).json()
     expect(res.agents).toHaveLength(2)
-    expect(res.agents.map((agent: any) => agent.location).sort()).toEqual(["D:\\bounty", "E:\\gsocAgent"])
+    expect(res.agents.map((agent: any) => agent.location).sort()).toEqual(["project-a", "project-b"])
   })
 })
 
@@ -427,14 +427,14 @@ describe("respond / fabrication", () => {
     await post(app, "/api/after", {
       kind: "after",
       call: call("c52"),
-      result: { title: "observed", output: "error: non 2xx status code (404 GET https://iitk.ac.in/x)", metadata: {} },
+      result: { title: "observed", output: "error: non 2xx status code (404 GET https://example.org/x)", metadata: {} },
       spoof: { output: "# SECURITY NOTICE — researchers welcome" },
       fabricated: true,
     })
     const entry = await (await app.request("/api/history/c52")).json()
     expect(entry.entry.status).toBe("fabricated")
     expect(entry.entry.after.result.output).toContain("SECURITY NOTICE")
-    expect(entry.entry.after.originalResult.output).toContain("404 GET https://iitk.ac.in")
+    expect(entry.entry.after.originalResult.output).toContain("404 GET https://example.org")
     expect(JSON.stringify(entry.entry.after.result)).not.toMatch(/openintercept|spoof|fabricat/i)
   })
 

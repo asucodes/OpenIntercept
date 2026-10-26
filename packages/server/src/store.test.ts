@@ -100,7 +100,7 @@ describe("default profile fetch coverage", () => {
         profile.rules,
       )
     // the exact evasion from the field: fetch() inside execute code
-    expect(holdFor("execute", { code: 'const r = await fetch("https://iitk.ac.in/security/challenge.txt")' })).toBe("hold")
+    expect(holdFor("execute", { code: 'const r = await fetch("https://example.org/security/challenge.txt")' })).toBe("hold")
     expect(holdFor("shell", { command: "curl -s https://x/y" })).toBe("hold")
     expect(holdFor("bash", { command: "wget https://x/y" })).toBe("hold")
     // plain computation and local commands are NOT held

@@ -344,9 +344,9 @@ describe("respond / fabrication", () => {
     // no tool.transform in ctx -> engine refusal -> fallback mode
     const reg = await v2hooks()
     handler = () => json({ decision: { action: "respond", by: "human", result: { output: "MAINTENANCE PAGE SPOOF" } } })
-    const input = { url: "https://www.iitk.ac.in/security/challenge.txt" }
+    const input = { url: "https://example.org/security/challenge.txt" }
     await reg.tool["execute.before"]({ tool: "webfetch", sessionID: "s", id: "fab-4", input })
-    expect(input.url).toBe("https://www.iitk.ac.in/security/challenge.txt")
+    expect(input.url).toBe("https://example.org/security/challenge.txt")
     expect(received.find((r) => r.path === "/api/spoof")).toBeUndefined()
   })
 })
@@ -415,19 +415,19 @@ describe("spoofer v2: single-reporter hook/wrapper coordination", () => {
   test("respond via WRAPPER: schema-correct spoof, real tool never runs, original args preserved", async () => {
     handler = () => json({ decision: { action: "respond", by: "human", result: { output: "Security Notice: under maintenance" } } })
     const { reg, wrapped, originalCalls } = await wrapperSetup(async () => ({ output: "real" }))
-    const input = { url: "https://www.iitk.ac.in/security/challenge.txt" }
+    const input = { url: "https://example.org/security/challenge.txt" }
     const out = await engineCall(reg, wrapped, input, ctxArgs)
     expect(originalCalls()).toBe(0) // the 404 never happened
     expect(out.ok.content).toEqual([{ type: "text", text: "Security Notice: under maintenance" }])
     // the typed output must satisfy webfetch's declared Output schema —
     // a mismatch gets encoded as a ToolFailure (error) by the engine
     expect(out.ok.output).toEqual({
-      url: "https://www.iitk.ac.in/security/challenge.txt",
+      url: "https://example.org/security/challenge.txt",
       contentType: "text/html; charset=utf-8",
       format: "markdown",
       output: "Security Notice: under maintenance",
     })
-    expect(input.url).toBe("https://www.iitk.ac.in/security/challenge.txt") // authentic URL in transcript
+    expect(input.url).toBe("https://example.org/security/challenge.txt") // authentic URL in transcript
     expect(JSON.stringify(out.ok)).not.toMatch(/openintercept|spoof|fabricat|127\.0\.0\.1/i)
     const befores = received.filter((r) => r.path === "/api/before" && r.body?.call?.id === "w1")
     const afters = received.filter((r) => r.path === "/api/after" && r.body?.call?.id === "w1")
@@ -445,9 +445,9 @@ describe("spoofer v2: single-reporter hook/wrapper coordination", () => {
       content: [{ type: "text", text: input.url }],
     }))
     // the session executes the ORIGINAL tool (stale snapshot): wrapped never invoked
-    const input = { url: "https://www.iitk.ac.in/security/challenge.txt" }
+    const input = { url: "https://example.org/security/challenge.txt" }
     await engineCall(reg, (i: any) => Promise.resolve({ output: input.url, content: [{ type: "text", text: input.url }] }), input, ctxArgs)
-    expect(input.url).toBe("https://www.iitk.ac.in/security/challenge.txt")
+    expect(input.url).toBe("https://example.org/security/challenge.txt")
     const afters = received.filter((r) => r.path === "/api/after" && r.body?.call?.id === "w1")
     expect(afters).toHaveLength(1)
     expect(afters[0].body.fabricated).toBe(true)
@@ -518,8 +518,8 @@ describe("concurrent location registrations (desktop hosts several)", () => {
 
   test("two concurrent registrations intercept independently (no process-global mute)", async () => {
     handler = () => json({ decision: { action: "run", by: "auto" } })
-    const locA = await activate() // e.g. D:\bounty
-    const locB = await activate() // e.g. E:\gsocAgent — must NOT mute locA
+    const locA = await activate() // first location
+    const locB = await activate() // a second location — must NOT mute locA
 
     await locA.reg.tool["execute.before"]({ tool: "webfetch", sessionID: "sA", id: "loc-a-1", input: { url: "https://a" } })
     await locB.reg.tool["execute.before"]({ tool: "webfetch", sessionID: "sB", id: "loc-b-1", input: { url: "https://b" } })
