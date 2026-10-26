@@ -6,6 +6,3 @@ dist/
 reference/
 # local runtime state
 data/
-demo/.opencode/
-demo/.oc-data/
-demo/*out*.txt

@@ -3,8 +3,5 @@
   "version": "0.1.0",
   "description": "OpenIntercept OpenCode adapter - single-file V1/V2 plugin, installed by copying into the plugins folder. No runtime dependencies.",
   "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "install:demo": "bun run ../../scripts/install-plugin.ts ./demo"
-  }
+  "type": "module"
 }

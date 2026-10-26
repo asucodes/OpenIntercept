@@ -94,8 +94,8 @@ writes the adapter into your global OpenCode plugin folder.
 From a terminal:
 
 ```bash
-bun scripts/install-plugin.ts ./demo    # into ./demo/.opencode/plugins
-bun scripts/install-plugin.ts --global  # into the global OpenCode config
+bun scripts/install-plugin.ts ./your-project    # into <project>/.opencode/plugins
+bun scripts/install-plugin.ts --global           # into the global OpenCode config
 ```
 
 Restart OpenCode after installing so it loads the plugin. The **Plugin** tab
@@ -198,8 +198,7 @@ panel/                 no-build single-page panel (index.html, app.js, styles.cs
 packages/protocol/     zod wire contract shared by adapter and sidecar
 packages/plugin/       the OpenCode adapter (single file, no dependencies)
 packages/server/       Hono sidecar: hold queue, rules, history, SSE, audit
-scripts/               plugin installer and traffic simulator
-demo/                  throwaway OpenCode project wired to the adapter
+scripts/               one-click installers, plugin installer, traffic simulator
 docs/                  notes on the OpenCode tool pipeline
 ```
 
