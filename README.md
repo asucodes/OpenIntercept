@@ -52,8 +52,6 @@ OpenIntercept puts that boundary under a human's hand.
 
 ![Intercept queue](docs/img/intercept.png)
 
-![Result decision](docs/img/result.png)
-
 ## Install
 
 **One click - any machine with OpenCode:**
