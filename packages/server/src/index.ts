@@ -33,7 +33,7 @@ const app = buildApp({
   store,
   audit,
   dataDir,
-  appVersion: "0.1.0",
+  appVersion: "1.0.0",
   panelDir: path.join(root, "panel"),
   pluginSource: path.join(root, "packages", "plugin", "src", "openintercept.plugin.ts"),
   // OpenCode reads its global config from ~/.config/opencode even on Windows

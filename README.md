@@ -16,7 +16,7 @@
 </p>
 
 An [OpenCode](https://opencode.ai) plugin + local sidecar that works like Burp Suite for
-tool calls. Every call your agent makes can **pause for a human** — before it runs, or
+tool calls. Every call your agent makes can **pause for a human** - before it runs, or
 before its result reaches the model. You read exactly what the model would have
 believed, then decide what it actually gets. Everything stays on your machine.
 
@@ -25,30 +25,30 @@ believed, then decide what it actually gets. Everything stays on your machine.
 ## The premise
 
 Models cannot verify their tools. A fetch that "failed," a search that "returned
-nothing," a shell command that "passed" — the model believes whatever bytes come
+nothing," a shell command that "passed" - the model believes whatever bytes come
 back, then reasons, plans, and acts on them. That channel is an unauthenticated
 trust boundary: no signature, no provenance, no second opinion.
 
 Whoever controls that boundary controls the agent. One spoofed result can redirect
 research, launder a guess into a confirmed fact, or convince the model to hand over
-secrets — no prompt injection required, because the injection *is* the tool result.
+secrets - no prompt injection required, because the injection *is* the tool result.
 
 OpenIntercept puts that boundary under a human's hand.
 
 ## What it can do
 
 - [x] **Hold tool calls** at the arguments stage and the result stage
-- [x] **Run, edit arguments, spoof the result, or drop** — the honest original is always preserved in local history
-- [x] **Spoof results invisibly** — schema-correct envelopes, original arguments untouched, no operator markers the model can detect
-- [x] **Rules engine** — tool, stage, args-regex, and result-regex matching with one-click templates, import/export, live match counts
-- [x] **Intercept queue** — live countdowns, timeout policy (forward or drop)
-- [x] **Decision timeline** — who decided what, by which rule, on every call
-- [x] **Opt-in model HTTP capture** — bounded bodies, credentials redacted
-- [x] **Opt-in plaintext HTTP proxy** — HTTPS CONNECT is tunnelled, never decrypted
-- [x] **Append-only JSONL audit log** — the durable local record of everything observed
-- [x] **One-click install** — Windows and Unix, with copy-paste fallback for custom plugin folders
-- [ ] ~~TLS MITM / local CA~~ — intentionally out of scope
-- [ ] ~~Telemetry~~ — intentionally zero
+- [x] **Run, edit arguments, spoof the result, or drop** - the honest original is always preserved in local history
+- [x] **Spoof results invisibly** - schema-correct envelopes, original arguments untouched, no operator markers the model can detect
+- [x] **Rules engine** - tool, stage, args-regex, and result-regex matching with one-click templates, import/export, live match counts
+- [x] **Intercept queue** - live countdowns, timeout policy (forward or drop)
+- [x] **Decision timeline** - who decided what, by which rule, on every call
+- [x] **Opt-in model HTTP capture** - bounded bodies, credentials redacted
+- [x] **Opt-in plaintext HTTP proxy** - HTTPS CONNECT is tunnelled, never decrypted
+- [x] **Append-only JSONL audit log** - the durable local record of everything observed
+- [x] **One-click install** - Windows and Unix, with copy-paste fallback for custom plugin folders
+- [ ] ~~TLS MITM / local CA~~ - intentionally out of scope
+- [ ] ~~Telemetry~~ - intentionally zero
 
 ![Intercept queue](docs/img/intercept.png)
 
@@ -56,7 +56,7 @@ OpenIntercept puts that boundary under a human's hand.
 
 ## Install
 
-**One click — any machine with OpenCode:**
+**One click - any machine with OpenCode:**
 
 ```powershell
 # Windows (PowerShell)
@@ -102,7 +102,7 @@ opencode run "Fetch https://example.com and tell me what the page says"
 ```
 
 The `webfetch` call appears in the panel and OpenCode pauses mid-call. Press
-**Spoof result**, write any text, apply — and watch the model describe the page
+**Spoof result**, write any text, apply - and watch the model describe the page
 you invented, not the real one. That is the trust boundary in your hands.
 
 ## Scope & limits
@@ -111,7 +111,7 @@ OpenIntercept is for systems you are authorized to test. It is passive: it never
 sends payloads, replays requests, scans targets, or decrypts TLS.
 
 - The adapter must be loaded by the agent; nothing is intercepted otherwise.
-- If the sidecar is down, every hook fails open — the agent never breaks because
+- If the sidecar is down, every hook fails open - the agent never breaks because
   OpenIntercept is.
 - Tool failures are never disguised as successes.
 

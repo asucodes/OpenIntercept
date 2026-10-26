@@ -1,6 +1,6 @@
 {
   "name": "openintercept",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OpenIntercept — local interception and inspection for AI agent tool calls and HTTP traffic.",
   "license": "MIT",
   "type": "module",
