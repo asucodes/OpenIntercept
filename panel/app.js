@@ -2344,6 +2344,30 @@ async function installPlugin() {
   }
 }
 
+const ONE_LINER_RAW = "https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts"
+
+function oneLinerText() {
+  const isWindows = /Win/i.test(navigator.platform || "")
+  return isWindows
+    ? `irm ${ONE_LINER_RAW}/install.ps1 | iex`
+    : `curl -fsSL ${ONE_LINER_RAW}/install.sh | bash`
+}
+
+function oneLinerCopy() {
+  const button = el("button", { class: "copy-btn", type: "button" }, icon("copy", 11), "Copy")
+  button.addEventListener("click", async () => {
+    if (await copyText(oneLinerText())) {
+      button.classList.add("copied")
+      button.replaceChildren(icon("check", 11), "Copied")
+      setTimeout(() => {
+        button.classList.remove("copied")
+        button.replaceChildren(icon("copy", 11), "Copy")
+      }, 1400)
+    } else toast("Clipboard unavailable", { tone: "warn", timeout: 2200 })
+  })
+  return button
+}
+
 async function setCapture(patch) {
   try {
     const result = await api("PUT", "/api/state", patch)
@@ -2378,6 +2402,14 @@ function renderPlugin() {
   inner.append(
     el("div", { class: "pane-head" },
       el("h2", {}, "Plugin & capture"),
+    ),
+    el("div", { class: "card" },
+      el("div", { class: "card-head" }, icon("zap", 14), el("h3", {}, "One-liner install"), el("span", { class: "spacer" })),
+      el("div", { class: "card-body" },
+        el("div", { class: "copy-row" }, oneLinerCopy()),
+        el("pre", { class: "code-snippet", id: "one-liner" }, oneLinerText()),
+        el("div", { class: "faint", style: "margin-top:6px" }, "Sets up Bun, the sidecar, and the adapter on any machine with OpenCode."),
+      ),
     ),
     el("div", { class: "plugin-grid" },
       el("div", { class: "card" },
