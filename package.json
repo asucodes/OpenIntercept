@@ -1,10 +1,17 @@
 {
   "name": "openintercept",
   "version": "0.1.0",
-  "private": true,
   "description": "OpenIntercept — local interception and inspection for AI agent tool calls and HTTP traffic.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asucodes/OpenIntercept.git"
+  },
+  "homepage": "https://github.com/asucodes/OpenIntercept#readme",
+  "bugs": {
+    "url": "https://github.com/asucodes/OpenIntercept/issues"
+  },
   "workspaces": [
     "packages/*"
   ],

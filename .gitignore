@@ -6,6 +6,6 @@ dist/
 reference/
 # local runtime state
 data/
-# demo project runtime artifacts (plugin copy IS committed as the example)
+demo/.opencode/
 demo/.oc-data/
 demo/*out*.txt
