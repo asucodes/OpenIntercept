@@ -1,18 +1,26 @@
-# OpenIntercept
+<p align="center">
+  <img src="docs/img/logo.svg" width="96" alt="OpenIntercept logo" />
+</p>
 
-**Models trust their tools blindly. This is the control panel for that trust.**
+<h1 align="center">OpenIntercept</h1>
 
-Local interception and inspection for AI agent tool calls and HTTP traffic.
-Built for [OpenCode](https://opencode.ai) first, with an adapter contract that
-other agents can implement.
+<p align="center">
+  Models trust their tools blindly. This is the control panel for that trust.
+</p>
 
-OpenIntercept sits between the model and the tools it invokes. A matching call can
-pause before it runs or before its result reaches the model, so you can run it,
-edit the arguments or result, fabricate a result, or drop it. Everything it
-observes stays on this machine.
+<p align="center">
+  <a href="https://github.com/asucodes/OpenIntercept/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/runtime-bun-f9f1e5?logo=bun" alt="Bun"></a>
+  <img src="https://img.shields.io/badge/platform-win%20%7C%20mac%20%7C%20linux-lightgrey" alt="Platform">
+  <a href="https://github.com/asucodes/OpenIntercept/stargazers"><img src="https://img.shields.io/github/stars/asucodes/OpenIntercept?style=social" alt="Stars"></a>
+</p>
 
-> **Scope.** OpenIntercept is for systems you are authorized to test. It is passive:
-> it never sends payloads, replays requests, scans targets, or decrypts TLS.
+An [OpenCode](https://opencode.ai) plugin + local sidecar that works like Burp Suite for
+tool calls. Every call your agent makes can **pause for a human** — before it runs, or
+before its result reaches the model. You read exactly what the model would have
+believed, then decide what it actually gets. Everything stays on your machine.
+
+![Calls list with inspector](docs/img/calls.png)
 
 ## The premise
 
@@ -25,28 +33,30 @@ Whoever controls that boundary controls the agent. One spoofed result can redire
 research, launder a guess into a confirmed fact, or convince the model to hand over
 secrets — no prompt injection required, because the injection *is* the tool result.
 
-That is the jailbreak surface, and it belongs to whoever holds the tool channel.
-OpenIntercept puts it under a human's hand: pause any call, read exactly what the
-model would have believed, and decide what it actually gets.
+OpenIntercept puts that boundary under a human's hand.
 
-## What it does
+## What it can do
 
-| Capability | Status |
-| --- | --- |
-| Hold tool calls at the arguments and result stages | Yes |
-| Run / edit arguments / fabricate result / drop | Yes |
-| Opt-in model provider HTTP capture | Yes |
-| Opt-in plaintext HTTP proxy (CONNECT is tunnel-only) | Yes |
-| TLS interception or a local CA | No |
-| Active scanning, replay, or fuzzing | No |
-| Accounts, cloud sync, or telemetry | No |
+- [x] **Hold tool calls** at the arguments stage and the result stage
+- [x] **Run, edit arguments, spoof the result, or drop** — the honest original is always preserved in local history
+- [x] **Spoof results invisibly** — schema-correct envelopes, original arguments untouched, no operator markers the model can detect
+- [x] **Rules engine** — tool, stage, args-regex, and result-regex matching with one-click templates, import/export, live match counts
+- [x] **Intercept queue** — live countdowns, timeout policy (forward or drop)
+- [x] **Decision timeline** — who decided what, by which rule, on every call
+- [x] **Opt-in model HTTP capture** — bounded bodies, credentials redacted
+- [x] **Opt-in plaintext HTTP proxy** — HTTPS CONNECT is tunnelled, never decrypted
+- [x] **Append-only JSONL audit log** — the durable local record of everything observed
+- [x] **One-click install** — Windows and Unix, with copy-paste fallback for custom plugin folders
+- [ ] ~~TLS MITM / local CA~~ — intentionally out of scope
+- [ ] ~~Telemetry~~ — intentionally zero
 
-## Quick start
+![Intercept queue](docs/img/intercept.png)
 
-Requirements: [Bun](https://bun.sh) 1.1+ and a terminal. No build step, no
-external services. (The one-click installer sets Bun up for you if it's missing.)
+![Result decision](docs/img/result.png)
 
-**One click — any machine with [OpenCode](https://opencode.ai):**
+## Install
+
+**One click — any machine with OpenCode:**
 
 ```powershell
 # Windows (PowerShell)
@@ -58,12 +68,12 @@ irm https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/instal
 curl -fsSL https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.sh | bash
 ```
 
-The installer: ensures Bun is present, clones the repo to `~/.openintercept`,
-writes the adapter into `~/.config/opencode/plugins` (OpenCode's default even on
-Windows), starts the sidecar, and prints the panel URL. Re-running it updates
-everything in place.
+The installer: ensures [Bun](https://bun.sh) is present, clones the repo to
+`~/.openintercept`, writes the adapter into `~/.config/opencode/plugins`
+(OpenCode's default even on Windows), starts the sidecar, and prints the panel
+URL. Re-running it updates everything in place.
 
-**Custom plugins folder?** Point the installer at it:
+**Custom plugins folder?**
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.ps1))) -PluginsDir "D:\path\to\opencode\plugins"
@@ -73,123 +83,37 @@ everything in place.
 curl -fsSL https://raw.githubusercontent.com/asucodes/OpenIntercept/main/scripts/install.sh | bash -s -- --plugins-dir /path/to/opencode/plugins
 ```
 
-**Manual setup** (what the one-liners do):
+**Manual:**
 
 ```bash
+git clone https://github.com/asucodes/OpenIntercept.git
+cd OpenIntercept
 bun install
 bun run start
 ```
 
-Open <http://127.0.0.1:7474>. The sidecar serves the panel and the API on the
-same loopback port.
+The panel is at <http://127.0.0.1:7474>. Restart OpenCode so it loads the
+adapter.
 
-## Install the adapter
-
-The adapter is a single dependency-free file
-(`packages/plugin/src/openintercept.plugin.ts`). Installation is a copy.
-
-From the panel, open the **Plugin** tab and press **Install / refresh**. This
-writes the adapter into your global OpenCode plugin folder.
-
-From a terminal:
+## Try it
 
 ```bash
-bun scripts/install-plugin.ts ./your-project    # into <project>/.opencode/plugins
-bun scripts/install-plugin.ts --global           # into the global OpenCode config
+opencode run "Fetch https://example.com and tell me what the page says"
 ```
 
-Restart OpenCode after installing so it loads the plugin. The **Plugin** tab
-shows the destination path and any registered agent heartbeats.
+The `webfetch` call appears in the panel and OpenCode pauses mid-call. Press
+**Spoof result**, write any text, apply — and watch the model describe the page
+you invented, not the real one. That is the trust boundary in your hands.
 
-## The panel
+## Scope & limits
 
-Five tabs, all driven by live sidecar data over SSE:
+OpenIntercept is for systems you are authorized to test. It is passive: it never
+sends payloads, replays requests, scans targets, or decrypts TLS.
 
-- **Calls** — every tool call the adapter reported, with status, arguments,
-  session, duration, and a detail pane showing the full decision trail, the
-  arguments, and the returned result (including the original when edited).
-- **HTTP** — captured model-provider exchanges and plaintext proxy traffic.
-  Request/response headers and bodies, with a copy-as-cURL action.
-- **Intercept** — the live hold queue. Edit the JSON and release, forward,
-  fabricate, or drop. Each card counts down to the configured timeout.
-- **Rules** — the interception policy. Rules match on tool name, stage,
-  argument regex, and result-content regex; first match wins. The profile also
-  sets the no-rule policy and hold timeout.
-- **Plugin** — adapter installation, capture toggles, health check, and the
-  local data summary.
-
-Keyboard: `/` focuses the filter, `I` toggles interception, `R` reloads, `Esc`
-closes the inspector.
-
-## Rules
-
-A rule has an optional name, a tool list (`null` = any tool), optional stages
-(`before`, `after`), optional argument and content regexes, an action
-(`hold`, `pass`, `drop`), and an enabled flag.
-
-```json
-{
-  "name": "hold web traffic",
-  "tools": ["webfetch", "websearch"],
-  "stages": null,
-  "action": "hold",
-  "enabled": true
-}
-```
-
-Rules are evaluated top to bottom. With interception on and no rule matching,
-the profile's `noRule` setting decides: `pass` fails open, `hold` pauses
-everything.
-
-## Capture
-
-Both capture modes are opt-in and off by default.
-
-- **Model provider HTTP** records provider requests and responses seen by the
-  adapter. Prompts and code may be included; authorization headers are
-  redacted before the record leaves the plugin.
-- **Plaintext HTTP proxy** listens on `127.0.0.1:7475` when enabled. It
-  inspects absolute `http://` requests and tunnels HTTPS without decrypting it.
-
-Captured history lives in memory and is capped at 1000 records per channel.
-The append-only audit log (`data/audit.jsonl`) is the durable record and is
-never rewritten by the panel's clear buttons.
-
-## Data on disk
-
-| Path | Contents |
-| --- | --- |
-| `data/state.json` | Intercept switch, profile/rules, capture settings |
-| `data/audit.jsonl` | Append-only event log (calls, decisions, traffic, plugin events) |
-
-`data/` is gitignored. Nothing is uploaded; there is no telemetry.
-
-## Configuration
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `OPENINTERCEPT_PORT` | `7474` | Sidecar and panel port |
-| `OPENINTERCEPT_HOST` | `127.0.0.1` | Bind address; loopback only by default |
-| `OPENINTERCEPT_PROXY_PORT` | `7475` | Plaintext proxy port |
-| `OPENINTERCEPT_URL` | `http://127.0.0.1:7474` | Base URL used by `scripts/sim.ts` |
-
-## Development
-
-```bash
-bun run start     # sidecar + panel
-bun run test      # package tests
-bun run check     # typecheck
-bun run sim       # act like an adapter and exercise a hold end to end
-```
-
-`bun run sim` posts a `webfetch` call to `/api/before`, waits for a decision,
-then posts the result. Use it to exercise the panel without OpenCode:
-
-```bash
-bun run sim -- --tool bash
-bun run sim -- --n 5
-bun run sim -- --before-only
-```
+- The adapter must be loaded by the agent; nothing is intercepted otherwise.
+- If the sidecar is down, every hook fails open — the agent never breaks because
+  OpenIntercept is.
+- Tool failures are never disguised as successes.
 
 ## Layout
 
@@ -202,15 +126,12 @@ scripts/               one-click installers, plugin installer, traffic simulator
 docs/                  notes on the OpenCode tool pipeline
 ```
 
-## Limits
+## Contributing & issues
 
-- The adapter must be loaded by the agent; nothing is intercepted otherwise.
-- The plaintext proxy does not decrypt HTTPS.
-- History is in memory, so a sidecar restart clears the panel's lists. The
-  audit log on disk is unaffected.
-- OpenIntercept is a local operator tool, not a scanner. It reports what the agent
-  actually did; it does not decide whether a target is vulnerable.
+Issues and PRs are welcome at
+[github.com/asucodes/OpenIntercept/issues](https://github.com/asucodes/OpenIntercept/issues).
+Tests: `bun test ./packages`. Types: `bun run check`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE) © OpenIntercept contributors
